@@ -1,0 +1,122 @@
+#!/bin/sh -e
+# postinst for dnssync
+# written by Krisztian CSANYI
+# <csanyi.krisztian@sitedesign.hu>
+
+case "$1" in
+	configure)
+		# continue below
+	;;
+
+	abort-upgrade|abort-remove|abort-doconfigure)
+		exit 0
+	;;
+
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 0
+	;;
+esac
+
+. /usr/share/debconf/confmodule
+
+DJBROOT=/var/dns
+
+if [ ! -d $DJBROOT ]; then
+	echo "djbdns configuration skeleton not exists."
+	exit 1
+fi
+
+umask 022
+
+# variables
+DS_DIR=dnssync
+DW_DIR=dnssync-web
+DS_USER1=dnssync
+DS_USER2=dsynclog
+DW_USER1=dnsweb
+DW_USER2=dweblog
+
+# functions
+
+make_skeleton() {
+ # 1: dir, 2: user1, 3: user2
+
+ mkdir -m3755 $1
+ mkdir -m2755 $1/env $1/log $1/root $1/log/main
+ mkdir -m2700 $1/supervise $1/log/supervise
+
+ touch $1/log/supervise/lock $1/log/supervise/status $1/supervise/lock $1/supervise/status $1/log/status $1/log/main/lock $1/log/main/state
+ chmod 600 $1/log/supervise/lock $1/supervise/lock $1/log/main/lock
+ chmod 644 $1/log/supervise/status $1/supervise/status $1/log/main/state
+ chown $3:nogroup $1/log/main $1/log/status $1/log/supervise/lock
+}
+
+# add necessary users
+
+if ! grep -q '^${DS_USER1}:' /etc/passwd; then
+	adduser --quiet --system --no-create-home --disabled-password --home /var/dns --shell /bin/false $DS_USER1
+fi
+
+if ! grep -q '^${DS_USER2}:' /etc/passwd; then
+	adduser --quiet --system --no-create-home --disabled-password --home /var/dns --shell /bin/false $DS_USER2
+fi
+
+if ! grep -q '^${DW_USER1}:' /etc/passwd; then
+	adduser --quiet --system --no-create-home --disabled-password --home /var/dns --shell /bin/false $DW_USER1
+fi
+
+if ! grep -q '^${DW_USER2}:' /etc/passwd; then
+	adduser --quiet --system --no-create-home --disabled-password --home /var/dns --shell /bin/false $DW_USER2
+fi
+
+# create service directories (dnssync, dnssync-web)
+make_skeleton $DJBROOT/$DS_DIR $DS_USER1 $DS_USER2
+make_skeleton $DJBROOT/$DW_DIR $DW_USER1 $DW_USER2
+
+cat > $DJBROOT/$DS_DIR/run <<EOT
+#!/bin/sh
+exec 2>&1
+exec envuidgid $DS_USER1 envdir ./env softlimit -d300000 /usr/bin/dnssync
+EOT
+
+cat > $DJBROOT/$DW_DIR/run <<EOT
+#!/bin/sh
+exec 2>&1
+exec envuidgid $DW_USER1 envdir ./env softlimit -d300000 /usr/bin/dnssync-web
+EOT
+
+cat > $DJBROOT/$DS_DIR/log/run <<EOT
+#!/bin/sh
+exec setuidgid $DS_USER2 multilog t ./main
+EOT
+
+cat > $DJBROOT/$DW_DIR/log/run <<EOT
+#!/bin/sh
+exec setuidgid $DW_USER2 multilog t ./main
+EOT
+
+chmod 755 $DJBROOT/$DS_DIR/run $DJBROOT/$DS_DIR/log/run $DJBROOT/$DW_DIR/run $DJBROOT/$DW_DIR/log/run
+
+# dnssync env
+echo "1" >$DJBROOT/$DS_DIR/env/DDNS
+echo "http://test.domain.tld/dnssync/retrive/" >$DJBROOT/$DS_DIR/env/DDNSURL
+echo "300" >$DJBROOT/$DS_DIR/env/PERIOD
+echo "$DJBROOT/$DS_DIR/root" >$DJBROOT/$DS_DIR/env/ROOT
+echo "5" >$DJBROOT/$DS_DIR/env/TIMEOUT
+echo "$DJBROOT/tinydns/root/primary" >$DJBROOT/$DS_DIR/env/TINYDNSDIR
+echo "/tmp" >$DJBROOT/$DS_DIR/env/TMPDIR
+echo "/usr/local/bin/dnssync_update" >$DJBROOT/$DS_DIR/env/UPDATESCRIPT
+echo "axfr" >$DJBROOT/$DS_DIR/env/ZTMETHOD
+
+# dnssync root
+# FIXME
+
+# dnssync-web env
+echo "127.0.0.1" >$DJBROOT/$DW_DIR/env/IP
+echo "80" >$DJBROOT/$DW_DIR/env/PORT
+echo "$DJBROOT/$DW_DIR/root" >$DJBROOT/$DW_DIR/env/ROOT
+echo "10" >$DJBROOT/$DW_DIR/env/THREADMAX
+
+# dnssync-web root
+# FIXME

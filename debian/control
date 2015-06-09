@@ -1,0 +1,13 @@
+Source: dnssync
+Section: net
+Priority: extra
+Maintainer: Krisztian Csanyi <csanyi.krisztian@sitedesign.hu>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.1
+Homepage: http://www.sitedesign.hu/dnssync
+
+Package: dnssync
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends}, daemontools, daemontools-run, djbdns
+Description: DNS synchronization and DDNS service solution for DJBDNS

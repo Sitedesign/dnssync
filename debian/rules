@@ -1,0 +1,88 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This is the debhelper compatibility version to use.
+#export DH_COMPAT=5
+
+
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -g
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+build: build-stamp
+
+build-stamp:
+	#
+	# BUILD-STAMP
+	#
+	dh_testdir
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	#
+	# CLEAN
+	#
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+
+    # Clean stamps
+	rm -f build-stamp configure-stamp
+    # There is an uninstall target in the makefile
+    # but we don't have to call it as dh_clean will
+    # do the job anyway.
+	dh_clean
+
+install: build
+	#
+	# STARTING INSTALL
+	#
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
+	# Install to debian's build directory
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/dnssync
+
+
+binary-arch: build install
+# Nothing to do.
+
+binary-indep: build install
+	#
+	# BINARY-INDEP
+	#
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	# dh_installexamples
+	# dh_installmenu
+	# dh_installcron
+	dh_installinit --no-start
+	dh_installman
+	#dh_installinfo
+	dh_installdebconf
+	dh_installchangelogs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	# dh_perl
+	# dh_shlibdeps -i
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+
+.PHONY: build clean binary-indep binary-arch binary install configure
