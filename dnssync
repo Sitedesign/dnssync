@@ -39,17 +39,22 @@ zt_axfr() {
 	cp $CURRENT $TINYDNSDIR/$1
 	rm -f $CURRENT
 	echo " zone transfer: $1 (remote: $2)"
-	return 1;
+	return 0;
  else
 	echo " zone transfer failed: $1 (remote: $2)"
-	return -1;
+	return 1;
  fi
 }
 
 update_serial() {
  for z in `find $ROOT/adns -type f -name $1`; do
 	echo " updating serial: $z"
-	echo $2 >$z
+	if [ $2 -gt 0 ]; then
+		echo " updating serial: $z"
+		echo $2 >$z
+	else
+		echo " update_serial: error: serial is less than zero."
+	fi
  done
 }
 
@@ -79,7 +84,7 @@ ddns_wget() {
    fi
  else
    echo " error occured while ddns_wget" 1>&2;
-   ret=-1;
+   ret=2;
  fi 
  rm -f $TMPDIR/ddns_records
  return $ret;
