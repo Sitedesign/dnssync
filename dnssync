@@ -8,102 +8,102 @@ UTL_AXFRGET=axfr-get
 UTL_DIFF=diff
 
 get_local_serial() {
- local SERIAL
- SERIAL=`cat $1`
- if [ -z $SERIAL ]; then
-	echo 0;
- else
-	echo $SERIAL;
- fi
+	local SERIAL
+	SERIAL=`cat $1`
+	if [ -z $SERIAL ]; then
+		echo 0;
+	else
+		echo $SERIAL;
+	fi
 }
 
 get_remote_serial() {
- local RESULT
- local CURRENT=`mktemp $TMPDIR/dnsquery.XXXXXX`
+	local RESULT
+	local CURRENT=`mktemp $TMPDIR/dnsquery.XXXXXX`
 
- $UTL_HOST -W $TIMEOUT -r -t soa $1 $2 >$CURRENT
+	$UTL_HOST -W $TIMEOUT -r -t soa $1 $2 >$CURRENT
 
- if [ $? = 0 ]; then
-	RESULT=`cat $CURRENT | fgrep "has SOA record" | awk '{print $(NF-4)}'`
-	echo $RESULT
- else
-	echo -1
- fi
- rm -f $CURRENT
+	if [ $? = 0 ]; then
+		RESULT=`cat $CURRENT | fgrep "has SOA record" | awk '{print $(NF-4)}'`
+		echo $RESULT
+	else
+		echo -1
+	fi
+	rm -f $CURRENT
 }
 
 zt_axfr() {
- local CURRENT=`mktemp $TMPDIR/zt.XXXXXX`
- $UTL_TCPCLIENT $2 53 $UTL_AXFRGET $1 $CURRENT $CURRENT.tmp
- if [ $? = 0 ]; then
-	cp $CURRENT $TINYDNSDIR/$1
-	rm -f $CURRENT
-	echo " zone transfer: $1 (remote: $2)"
-	return 0;
- else
-	echo " zone transfer failed: $1 (remote: $2)"
-	return 1;
- fi
+	local CURRENT=`mktemp $TMPDIR/zt.XXXXXX`
+	$UTL_TCPCLIENT $2 53 $UTL_AXFRGET $1 $CURRENT $CURRENT.tmp
+	if [ $? = 0 ]; then
+		cp $CURRENT $TINYDNSDIR/$1
+		rm -f $CURRENT
+		echo " zone transfer: $1 (remote: $2)"
+		return 0;
+	else
+		echo " zone transfer failed: $1 (remote: $2)"
+		return 1;
+	fi
 }
 
 update_serial() {
- for z in `find $ROOT/adns -type f -name $1`; do
-	echo " updating serial: $z"
-	if [ $2 -gt 0 ]; then
+	for z in `find $ROOT/adns -type f -name $1`; do
 		echo " updating serial: $z"
-		echo $2 >$z
-	else
-		echo " update_serial: error: serial is less than zero."
-	fi
- done
+		if [ $2 -gt 0 ]; then
+			echo " updating serial: $z"
+			echo $2 >$z
+		else
+			echo " update_serial: error: serial is less than zero."
+		fi
+	done
 }
 
 finish() {
- echo "signal cought" 1>&2
- rm -f $TMPDIR/dnsquery.*
- exit 0
+	echo "signal cought" 1>&2
+	rm -f $TMPDIR/dnsquery.*
+	exit 0
 }
 
 ddns_copy() {
- cp $ROOT/ddns/ddns_records $TINYDNSDIR/ddns_records
- UPDREQ=1
+	cp $ROOT/ddns/ddns_records $TINYDNSDIR/ddns_records
+	UPDREQ=1
 }
 
 ddns_wget() {
- local ret;
- echo "requesting DDNS zone file from $1";
- wget -q $1 -O$TMPDIR/ddns_records
- if [ "$?" = "0" ]; then
-   $UTL_DIFF $TMPDIR/ddns_records $2 &>/dev/null
-   if [ $? -ne 0 ]; then
-     cp $TMPDIR/ddns_records $2
-     echo " local ddns records updated"; 
-     ret=1;
-   else
-     ret=0;
-   fi
- else
-   echo " error occured while ddns_wget" 1>&2;
-   ret=2;
- fi 
- rm -f $TMPDIR/ddns_records
- return $ret;
+	local ret;
+	echo "requesting DDNS zone file from $1";
+	wget -q $1 -O$TMPDIR/ddns_records
+	if [ "$?" = "0" ]; then
+		$UTL_DIFF $TMPDIR/ddns_records $2 &>/dev/null
+		if [ $? -ne 0 ]; then
+			cp $TMPDIR/ddns_records $2
+			echo " local ddns records updated"; 
+			ret=1;
+		else
+			ret=0;
+		fi
+	else
+		echo " error occured while ddns_wget" 1>&2;
+		ret=2;
+	fi
+	rm -f $TMPDIR/ddns_records
+	return $ret;
 }
 
 remove_ddns_from_adns() {
- if [ -f $TINYDNSDIR/ddns_records ] && [ -f $TINYDNSDIR/$1 ]; then
-   fgrep -vx -f $TINYDNSDIR/ddns_records $TINYDNSDIR/$1 >$TINYDNSDIR/$1.postddns
-   rm -f $TINYDNSDIR/$1
-   mv $TINYDNSDIR/$1.postddns $TINYDNSDIR/$1
- else
-   echo "remove_ddns_from_adns(): input files not exists" 1>&2
- fi 
+	if [ -f $TINYDNSDIR/ddns_records ] && [ -f $TINYDNSDIR/$1 ]; then
+		fgrep -vx -f $TINYDNSDIR/ddns_records $TINYDNSDIR/$1 >$TINYDNSDIR/$1.postddns
+		rm -f $TINYDNSDIR/$1
+		mv $TINYDNSDIR/$1.postddns $TINYDNSDIR/$1
+	else
+		echo "remove_ddns_from_adns(): input files not exists" 1>&2
+	fi 
 }
 
 # MAIN
 
 for i in ROOT PERIOD TIMEOUT ZTMETHOD TMPDIR TINYDNSDIR UPDATESCRIPT; do
- [ -z "${!i}" ] && { echo "$i envvar is not set" 1>&2; exit -1; }
+	[ -z "${!i}" ] && { echo "$i envvar is not set" 1>&2; exit -1; }
 done
 
 trap finish EXIT
@@ -112,49 +112,48 @@ echo "dnssync started" 1>&2
 
 while [ 1 ]; do
 
- UPDREQ=0
+	UPDREQ=0
 
- # DDNS service
- if [ "$DDNS" = "1" ]; then
-	if [ ! -z "$DDNSURL" ]; then
-		ddns_wget $DDNSURL $TINYDNSDIR/ddns_records
-		if [ $? -eq "0" ]; then
-			UPDREQ=1;
+	# DDNS service
+	if [ "$DDNS" = "1" ]; then
+		if [ ! -z "$DDNSURL" ]; then
+			ddns_wget $DDNSURL $TINYDNSDIR/ddns_records
+			if [ $? -eq "0" ]; then
+				UPDREQ=1;
+			fi
 		fi
 	fi
- fi
 
- # DNS Sync service
+	# DNS Sync service
 
- cd $ROOT/adns
- for i in *; do
-	cd $i 2>/dev/null;
-	for j in *; do
-		LOCAL_SERIAL=`get_local_serial $ROOT/adns/$i/$j`
-		REMOTE_SERIAL=`get_remote_serial $j $i`
+	cd $ROOT/adns
+	for i in *; do
+		cd $i 2>/dev/null;
+		for j in *; do
+			LOCAL_SERIAL=`get_local_serial $ROOT/adns/$i/$j`
+			REMOTE_SERIAL=`get_remote_serial $j $i`
 	
-		echo "$i: $j: local_serial: $LOCAL_SERIAL remote_serial: $REMOTE_SERIAL" 1>&2
+			echo "$i: $j: local_serial: $LOCAL_SERIAL remote_serial: $REMOTE_SERIAL" 1>&2
 
-		if [ $LOCAL_SERIAL -lt $REMOTE_SERIAL ]; then
-			zt_axfr $j $i
-			if [ "$DDNS" = "1" ]; then
-				# remove ddns records from updated zone -> prevent duplication
-				remove_ddns_from_adns $j
+			if [ $LOCAL_SERIAL -lt $REMOTE_SERIAL ]; then
+				zt_axfr $j $i
+				if [ "$DDNS" = "1" ]; then
+					# remove ddns records from updated zone -> prevent duplication
+					remove_ddns_from_adns $j
+				fi
+				update_serial $j $REMOTE_SERIAL
+				UPDREQ=1
 			fi
-			update_serial $j $REMOTE_SERIAL
-			UPDREQ=1
-		fi
+		done
+		cd - &>/dev/null
 	done
-	cd - &>/dev/null
- done
 
- if [ $UPDREQ = 1 ]; then
-	UPDREQ=0
-	echo "starting update script: $UPDATESCRIPT"
-	. $UPDATESCRIPT >/dev/null
-	echo "update script finished: $?"
- fi
+	if [ $UPDREQ = 1 ]; then
+		UPDREQ=0
+		echo "starting update script: $UPDATESCRIPT"
+		. $UPDATESCRIPT >/dev/null
+		echo "update script finished: $?"
+	fi
 
- sleep $PERIOD
-
+	sleep $PERIOD
 done
