@@ -5,7 +5,7 @@ There two main parts in this:
 * **dnssync** - the sync logic
 * **dnssync-web** - the DDNS frontend daemon
 
-Both service running in the daemontools environment
+Both service running in the daemontools environment.
 
 ## dnssync
 
@@ -44,6 +44,16 @@ content of the domain files must be 0. Dnssync stores zone serial there.
 
 Ddns directory: not implemented yet.
 
+#### Update script
+
+The update script path defined in the environment variables. This script is used to execute functions when zone need to be updated (and this script updates the zone under TinyDNS):
+
+```bash
+#!/bin/bash
+/var/dns/tinydns/root/make.sh
+svc -h /service/dnscache
+```
+
 ## dnssync-web
 
 This is a webserver for updating IPs for DDNS domains and retriving DDNS zone.
@@ -74,4 +84,27 @@ Root directory example for better understanding:
 ./clients/john.ddns.domain.tld/KEY
 ```
 
-FIXME: details
+There are two main directories under root: clients and server.
+
+Under clients directory we define the DDNS client domains as a directory. Under each client there are three files: IP, TTL, KEY:
+* The IP file stores the current IP address of the client *(default: 127.0.0.1)*
+* The TTL file stores the Time To Live value of the IP in seconds *(default: 60)*
+* The KEY file stores a key value for the client, which determines the client at IP update HTTP calls. The key should be a  string of letters and numbers.
+
+Under servers directory we define files with names of the name servers which allowed to retrive the DDNS zone. The files should be empty.
+
+### Updating client IP
+
+The client IP can be updated by a simple HTTP GET request to the dnssync-web server. For example:
+```
+http://ns2.domain.tld/dnssync/5BEKrNynsaZ4Xwy/
+```
+where 5BEKrNynsaZ4Xwy is the KEY of the john.ddns.domain.tld.
+
+### Retriving DDNS zone
+
+DDNS can be retrived by a simple HTTP GET request from the allowed servers to the dnssync-web server. For example:
+```
+http://ns2.domain.tld/dnssync/retrive/
+```
+The response is in TinyDNS format.
