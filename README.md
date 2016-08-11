@@ -7,9 +7,16 @@ There two main parts in this:
 
 Both service running in the daemontools environment.
 
+## Requirements
+
+dnssync depends on:
+* daemontools
+* daemontools-run
+* djbdns
+
 ## dnssync
 
-The dnssync is synchronization daemon which periodically checks local and remote serials for the configured zones. If a zone serial updated a zone transfer will begin.
+The dnssync is synchronization daemon which periodically checks local and remote serials for the configured zones. If a zone serial updated a zone transfer will begin. Written in Bash.
 
 ### Configuration
 
@@ -56,7 +63,7 @@ svc -h /service/dnscache
 
 ## dnssync-web
 
-This is a webserver for updating IPs for DDNS domains and retriving DDNS zone.
+This is a webserver for updating IPs for DDNS domains and retriving DDNS zone. This is the modified version of tinyhttpd written in C.
 
 ### Configuration
 
@@ -73,15 +80,15 @@ Root directory example for better understanding:
 
 ```
 .
-./servers
-./servers/ns1.domain.tld
-./servers/ns2.domain.tld
-./servers/ns3.domain.tld
 ./clients
 ./clients/john.ddns.domain.tld
 ./clients/john.ddns.domain.tld/IP
 ./clients/john.ddns.domain.tld/TTL
 ./clients/john.ddns.domain.tld/KEY
+./servers
+./servers/ns1.domain.tld
+./servers/ns2.domain.tld
+./servers/ns3.domain.tld
 ```
 
 There are two main directories under root: clients and server.
