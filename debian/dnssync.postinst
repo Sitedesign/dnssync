@@ -46,10 +46,10 @@ make_skeleton() {
  mkdir -m2755 $1/env $1/log $1/root $1/log/main
  mkdir -m2700 $1/supervise $1/log/supervise
 
- touch $1/log/supervise/lock $1/log/supervise/status $1/supervise/lock $1/supervise/status $1/log/status $1/log/main/lock $1/log/main/state
+ touch $1/log/supervise/lock $1/log/supervise/status $1/supervise/lock $1/supervise/status $1/log/status $1/log/main/lock $1/log/main/state $1/log/main/current
  chmod 600 $1/log/supervise/lock $1/supervise/lock $1/log/main/lock
- chmod 644 $1/log/supervise/status $1/supervise/status $1/log/main/state
- chown $3:nogroup $1/log/main $1/log/status $1/log/supervise/lock
+ chmod 644 $1/log/supervise/status $1/supervise/status $1/log/main/state $1/log/main/current
+ chown $3:nogroup $1/log/main $1/log/status $1/log/supervise/lock $1/log/current
 }
 
 # add necessary users

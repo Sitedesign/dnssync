@@ -26,7 +26,7 @@ The dnssync is synchronization daemon which periodically checks local and remote
 * DDNSURL - URL for retriving the DDNS zone, this the dnssync-web URL *(default: http://test.domain.tld/dnssync/retrive/)*
 * PERIOD - Checking period in seconds *(default: 300)*
 * ROOT - Root directory path for dnssync *(default: /var/dns/dnssync/root)*
-* TIMEOUT - Timeout for checking remote serial in seconds *(default: 5)*
+* TIMEOUT - Timeout for checking remote serial and retriving DDNS zone file in seconds *(default: 5)*
 * TINYDNSDIR - Local TinyDNS root directory / zones directory *(default: /var/dns/tinydns/root/primary)*
 * TMPDIR - Directory path for temporary files *(default: /tmp)*
 * UPDATESCRIPT - This is a path for a script which makes data.cdb for TinyDNS *(default: /usr/local/bin/dnssync_update)*

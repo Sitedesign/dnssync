@@ -72,7 +72,7 @@ ddns_copy() {
 ddns_wget() {
 	local ret;
 	echo "requesting DDNS zone file from $1";
-	wget -q $1 -O$TMPDIR/ddns_records
+	wget --quiet --timeout $TIMEOUT $1 -O$TMPDIR/ddns_records
 	if [ "$?" = "0" ]; then
 		$UTL_DIFF $TMPDIR/ddns_records $2 &>/dev/null
 		if [ $? -ne 0 ]; then

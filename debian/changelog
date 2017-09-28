@@ -1,3 +1,11 @@
+dnssync (0.0.2) unstable; urgency=low
+
+  * Timeout applied for ddns_wget function
+  * Debian control file updated - dependency
+  * Debian postinst updated
+
+ -- Krisztian Csanyi <csanyi.krisztian@sitedesign.hu>  Thu, 28 Sep 2017 13:56:34 +0200
+
 dnssync (0.0.1) unstable; urgency=low
 
   * Initial Release.

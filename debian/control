@@ -9,5 +9,5 @@ Homepage: http://www.sitedesign.hu/dnssync
 Package: dnssync
 Architecture: any
 Multi-Arch: same
-Depends: ${misc:Depends}, daemontools, daemontools-run, djbdns
+Depends: ${misc:Depends}, daemontools, daemontools-run, djbdns, wget, host
 Description: DNS synchronization and DDNS service solution for DJBDNS

@@ -1,0 +1,6 @@
+debian/dnssync
+debian/dnssync.debhelper.log
+debian/dnssync.substvars
+debian/files
+build-stamp
+src/dnssync-web
